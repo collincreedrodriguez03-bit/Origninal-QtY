@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.data.backtest.*
+import com.example.ui.theme.QtYColors
+import com.example.ui.components.QtYHeader
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,43 +49,23 @@ fun HistoricalBacktestScreen(
     var backtestProgress by remember { mutableStateOf(0) }
     var backtestStatusText by remember { mutableStateOf("") }
     var backtestResult by remember { mutableStateOf<BacktestRunResult?>(null) }
-    var selectedFilterTrack by remember { mutableStateOf("ALL") }
 
-    val darkBackground = Color(0xFF0D0E12)
-    val cardBackground = Color(0xFF14151D)
-    val neonGreen = Color(0xFF00FF66)
-    val neonRed = Color(0xFFFF3366)
-    val cyanAccent = Color(0xFF00E5FF)
-    val kalshiOrange = Color(0xFFFF9900)
-    val purpleAccent = Color(0xFF9D00FF)
+    val darkBackground = QtYColors.Background
+    val cardBackground = QtYColors.Surface
+    val cardBorder = QtYColors.BorderDefault
+    val neonGreen = QtYColors.BullishGreen
+    val neonRed = QtYColors.BearishRed
+    val cyanAccent = QtYColors.PrimaryCyan
+    val kalshiOrange = QtYColors.WarningAmber
+    val purpleAccent = QtYColors.SecondaryPurple
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "HISTORICAL BACKTESTER (P0-C)",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Black,
-                            fontSize = 16.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "Walk-Forward Replay • 5 Independent Tracks • Strict No-Lookahead",
-                            fontSize = 10.sp,
-                            color = Color.Gray,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = darkBackground)
+            QtYHeader(
+                title = "HISTORICAL BACKTESTER (P0-C)",
+                subtitle = "Walk-Forward Replay • 5 Independent Tracks",
+                onOpenLiveRadar = onBack
             )
         },
         containerColor = darkBackground
@@ -91,33 +74,35 @@ fun HistoricalBacktestScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 12.dp)
+                .testTag("backtest_lazy_column"),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // 1. Mandatory Legal & Methodological Disclosures
+            // 1. Mandatory Methodological Disclosures
             item {
+                Spacer(modifier = Modifier.height(4.dp))
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1308)),
-                    border = BorderStroke(1.dp, kalshiOrange.copy(alpha = 0.5f))
+                    modifier = Modifier.fillMaxWidth().testTag("backtest_disclosure_card"),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF141008)),
+                    border = BorderStroke(1.dp, kalshiOrange.copy(alpha = 0.4f))
                 ) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = kalshiOrange, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = kalshiOrange, modifier = Modifier.size(14.dp))
                             Text(
                                 text = "RESEARCH INTEGRITY & METHODOLOGY DISCLOSURES",
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = kalshiOrange,
                                 fontFamily = FontFamily.Monospace
                             )
                         }
                         Text(
-                            text = "• 1-minute OHLC historical data does not reveal the exact intraminute price path or exact moment the market crossed the strike.\n• All backtest executions represent SIMULATED EXECUTION — NOT HISTORICAL FILLS.\n• Settlement Convention: Kalshi Rule 5.1 (Above Strike) — YES wins if S_15 > S_0; NO wins if S_15 <= S_0 (FLAT settles NO).\n• Gemini historical results are labeled RETROSPECTIVE — CURRENT MODEL VERSION ONLY.\n• Confidence tiers (INSUFFICIENT / PRELIMINARY / CALIBRATION READY) indicate sample size readiness only, not proven edge.",
-                            fontSize = 10.sp,
-                            color = Color(0xFFE0D0B0),
-                            lineHeight = 15.sp,
+                            text = "• 1-minute OHLC historical data does not reveal intraminute price paths.\n• All backtest executions represent SIMULATED EXECUTION — NOT HISTORICAL FILLS.\n• Settlement: Kalshi Rule 5.1 (Above Strike) — FLAT settles NO.",
+                            fontSize = 9.sp,
+                            color = Color(0xFFD0C0A0),
+                            lineHeight = 13.sp,
                             fontFamily = FontFamily.Monospace
                         )
                     }
@@ -127,37 +112,37 @@ fun HistoricalBacktestScreen(
             // 2. Backtest Parameter Configuration Card
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("backtest_config_card"),
+                    shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(containerColor = cardBackground),
-                    border = BorderStroke(1.dp, Color(0xFF2A2B3D))
+                    border = BorderStroke(1.dp, cardBorder)
                 ) {
-                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
                             text = "BACKTEST CONFIGURATION",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black,
                             color = cyanAccent,
                             fontFamily = FontFamily.Monospace
                         )
 
                         // Data Source Mode Selection
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Dataset Mode:", fontSize = 11.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Dataset Mode:", fontSize = 10.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 OutlinedButton(
                                     onClick = { useSyntheticBenchmarkMode = false },
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(6.dp),
                                     modifier = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                                    border = BorderStroke(1.dp, if (!useSyntheticBenchmarkMode) neonGreen else Color(0xFF333344)),
+                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                                    border = BorderStroke(1.dp, if (!useSyntheticBenchmarkMode) neonGreen else cardBorder),
                                     colors = ButtonDefaults.outlinedButtonColors(
                                         containerColor = if (!useSyntheticBenchmarkMode) neonGreen.copy(alpha = 0.15f) else Color.Transparent
                                     )
                                 ) {
                                     Text(
                                         text = "Coinbase REST (Research)",
-                                        fontSize = 10.sp,
+                                        fontSize = 9.sp,
                                         color = if (!useSyntheticBenchmarkMode) neonGreen else Color.LightGray,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace
@@ -165,17 +150,17 @@ fun HistoricalBacktestScreen(
                                 }
                                 OutlinedButton(
                                     onClick = { useSyntheticBenchmarkMode = true },
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(6.dp),
                                     modifier = Modifier.weight(1f),
-                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
-                                    border = BorderStroke(1.dp, if (useSyntheticBenchmarkMode) kalshiOrange else Color(0xFF333344)),
+                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
+                                    border = BorderStroke(1.dp, if (useSyntheticBenchmarkMode) kalshiOrange else cardBorder),
                                     colors = ButtonDefaults.outlinedButtonColors(
                                         containerColor = if (useSyntheticBenchmarkMode) kalshiOrange.copy(alpha = 0.15f) else Color.Transparent
                                     )
                                 ) {
                                     Text(
                                         text = "Synthetic GBM (Dev Test)",
-                                        fontSize = 10.sp,
+                                        fontSize = 9.sp,
                                         color = if (useSyntheticBenchmarkMode) kalshiOrange else Color.LightGray,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace
@@ -186,16 +171,16 @@ fun HistoricalBacktestScreen(
 
                         // Date Range Options
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Lookback Window:", fontSize = 11.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                listOf(1 to "24 Hours", 3 to "3 Days", 7 to "7 Days", 14 to "14 Days", 30 to "30 Days").forEach { (days, label) ->
+                            Text("Lookback Window:", fontSize = 10.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                listOf(1 to "24H", 3 to "3D", 7 to "7D", 14 to "14D", 30 to "30D").forEach { (days, label) ->
                                     val isSel = selectedDaysRange == days
                                     OutlinedButton(
                                         onClick = { selectedDaysRange = days },
-                                        shape = RoundedCornerShape(8.dp),
+                                        shape = RoundedCornerShape(6.dp),
                                         modifier = Modifier.weight(1f),
-                                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 4.dp),
-                                        border = BorderStroke(1.dp, if (isSel) cyanAccent else Color(0xFF333344)),
+                                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 2.dp),
+                                        border = BorderStroke(1.dp, if (isSel) cyanAccent else cardBorder),
                                         colors = ButtonDefaults.outlinedButtonColors(
                                             containerColor = if (isSel) cyanAccent.copy(alpha = 0.15f) else Color.Transparent
                                         )
@@ -204,7 +189,8 @@ fun HistoricalBacktestScreen(
                                             text = label,
                                             fontSize = 9.sp,
                                             color = if (isSel) cyanAccent else Color.LightGray,
-                                            fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal
+                                            fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                            fontFamily = FontFamily.Monospace
                                         )
                                     }
                                 }
@@ -213,31 +199,31 @@ fun HistoricalBacktestScreen(
 
                         // Execution Friction Scenario Options
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text("Execution Cost Scenario:", fontSize = 11.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                            Text("Execution Cost Scenario:", fontSize = 10.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
                             ExecutionFrictionScenario.values().forEach { scenario ->
                                 val isSel = selectedFriction == scenario
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (isSel) Color(0xFF1E2235) else Color(0xFF161722))
-                                        .border(1.dp, if (isSel) purpleAccent else Color(0xFF2A2B3D), RoundedCornerShape(8.dp))
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (isSel) Color(0xFF161A26) else Color(0xFF0E1017))
+                                        .border(1.dp, if (isSel) purpleAccent else cardBorder, RoundedCornerShape(6.dp))
                                         .clickable { selectedFriction = scenario }
-                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                        .padding(horizontal = 8.dp, vertical = 6.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column {
                                         Text(
                                             text = scenario.displayName,
-                                            fontSize = 11.sp,
+                                            fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = if (isSel) purpleAccent else Color.White,
                                             fontFamily = FontFamily.Monospace
                                         )
                                         Text(
-                                            text = "Total Drag: ${String.format("%.1f", scenario.totalFrictionCents)}¢ per contract fill",
-                                            fontSize = 9.sp,
+                                            text = "Drag: ${String.format("%.1f", scenario.totalFrictionCents)}¢ per contract",
+                                            fontSize = 8.sp,
                                             color = Color.Gray,
                                             fontFamily = FontFamily.Monospace
                                         )
@@ -288,7 +274,7 @@ fun HistoricalBacktestScreen(
                                             }
                                         )
                                         backtestResult = result
-                                        snackbarHostState.showSnackbar("Backtest completed: ${metadata.totalCandlesCount} 1m candles analyzed.")
+                                        snackbarHostState.showSnackbar("Backtest completed successfully.")
                                     } catch (e: Exception) {
                                         snackbarHostState.showSnackbar("Backtest Error: ${e.message}")
                                     } finally {
@@ -297,29 +283,29 @@ fun HistoricalBacktestScreen(
                                 }
                             },
                             enabled = !isRunningBacktest,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth().testTag("run_backtest_button"),
+                            shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = if (useSyntheticBenchmarkMode) kalshiOrange else cyanAccent)
                         ) {
                             if (isRunningBacktest) {
-                                CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.Black, strokeWidth = 2.dp)
-                                Spacer(modifier = Modifier.width(8.dp))
+                                CircularProgressIndicator(modifier = Modifier.size(14.dp), color = Color.Black, strokeWidth = 2.dp)
+                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "$backtestProgress% — $backtestStatusText",
                                     color = Color.Black,
-                                    fontSize = 11.sp,
+                                    fontSize = 10.sp,
                                     fontFamily = FontFamily.Monospace,
                                     fontWeight = FontWeight.Bold
                                 )
                             } else {
-                                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black)
+                                Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = if (useSyntheticBenchmarkMode) "EXECUTE SYNTHETIC TEST RUN" else "EXECUTE AUTHENTIC RESEARCH BACKTEST",
+                                    text = if (useSyntheticBenchmarkMode) "EXECUTE SYNTHETIC TEST RUN" else "EXECUTE RESEARCH BACKTEST",
                                     color = Color.Black,
                                     fontWeight = FontWeight.Black,
                                     fontFamily = FontFamily.Monospace,
-                                    fontSize = 12.sp
+                                    fontSize = 11.sp
                                 )
                             }
                         }
@@ -334,28 +320,26 @@ fun HistoricalBacktestScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF2E1111)),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF260E0E)),
                             border = BorderStroke(1.dp, neonRed)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
+                                modifier = Modifier.fillMaxWidth().padding(10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Icon(Icons.Default.Warning, contentDescription = null, tint = neonRed, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.Warning, contentDescription = null, tint = neonRed, modifier = Modifier.size(16.dp))
                                 Column {
                                     Text(
-                                        text = "SYNTHETIC TEST DATA — NOT REAL MARKET DATA",
+                                        text = "SYNTHETIC TEST DATASET ACTIVE",
                                         fontWeight = FontWeight.Black,
-                                        fontSize = 12.sp,
+                                        fontSize = 10.sp,
                                         color = neonRed,
                                         fontFamily = FontFamily.Monospace
                                     )
                                     Text(
-                                        text = "This run utilized offline deterministic benchmark candles. It is strictly segregated and cannot contribute to research metrics or sample size N.",
-                                        fontSize = 10.sp,
+                                        text = "Utilizes offline benchmark candles. Segregated from production research metrics.",
+                                        fontSize = 9.sp,
                                         color = Color(0xFFFFCCCC),
                                         fontFamily = FontFamily.Monospace
                                     )
@@ -368,11 +352,11 @@ fun HistoricalBacktestScreen(
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = CardDefaults.cardColors(containerColor = cardBackground),
-                        border = BorderStroke(1.dp, if (result.isSyntheticRun) kalshiOrange.copy(alpha = 0.6f) else neonGreen.copy(alpha = 0.5f))
+                        border = BorderStroke(1.dp, if (result.isSyntheticRun) kalshiOrange.copy(alpha = 0.5f) else neonGreen.copy(alpha = 0.5f))
                     ) {
-                        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -380,19 +364,19 @@ fun HistoricalBacktestScreen(
                             ) {
                                 Text(
                                     text = "DATASET AUDIT METADATA",
-                                    fontSize = 12.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = neonGreen,
                                     fontFamily = FontFamily.Monospace
                                 )
                                 Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = Color(0xFF1F2937)
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = Color(0xFF161A26)
                                 ) {
                                     Text(
                                         text = result.datasetMetadata.source,
-                                        fontSize = 9.sp,
-                                        color = Color.LightGray,
+                                        fontSize = 8.sp,
+                                        color = cyanAccent,
                                         fontFamily = FontFamily.Monospace,
                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                     )
@@ -402,28 +386,28 @@ fun HistoricalBacktestScreen(
                             // Metrics Grid
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column {
-                                    Text("1-MIN CANDLES", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                                    Text("${result.datasetMetadata.totalCandlesCount}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Monospace)
+                                    Text("1-MIN CANDLES", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                                    Text("${result.datasetMetadata.totalCandlesCount}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White, fontFamily = FontFamily.Monospace)
                                 }
                                 Column {
-                                    Text("DATA GAPS", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                                    Text("${result.datasetMetadata.missingCandlesCount} missing", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = if (result.datasetMetadata.missingCandlesCount > 0) kalshiOrange else neonGreen, fontFamily = FontFamily.Monospace)
+                                    Text("DATA GAPS", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                                    Text("${result.datasetMetadata.missingCandlesCount}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (result.datasetMetadata.missingCandlesCount > 0) kalshiOrange else neonGreen, fontFamily = FontFamily.Monospace)
                                 }
                                 Column {
-                                    Text("FRICTION DRAG", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                                    Text("${result.frictionScenario.totalFrictionCents}¢/fill", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = purpleAccent, fontFamily = FontFamily.Monospace)
+                                    Text("FRICTION DRAG", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                                    Text("${result.frictionScenario.totalFrictionCents}¢", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = purpleAccent, fontFamily = FontFamily.Monospace)
                                 }
                             }
 
-                            // SHA-256 Checksum Box
+                            // SHA-256 Checksum Box (Terminal Style)
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFF0F1015), RoundedCornerShape(8.dp))
-                                    .border(1.dp, Color(0xFF262838), RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF090B10), RoundedCornerShape(6.dp))
+                                    .border(1.dp, cardBorder, RoundedCornerShape(6.dp))
                                     .clickable {
                                         clipboardManager.setText(AnnotatedString(result.datasetMetadata.datasetSha256Checksum))
-                                        coroutineScope.launch { snackbarHostState.showSnackbar("SHA-256 Checksum copied to clipboard!") }
+                                        coroutineScope.launch { snackbarHostState.showSnackbar("SHA-256 Checksum copied!") }
                                     }
                                     .padding(8.dp)
                             ) {
@@ -432,12 +416,12 @@ fun HistoricalBacktestScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("SHA-256 DATASET CHECKSUM (Tap to Copy):", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
-                                    Icon(Icons.Default.Share, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(12.dp))
+                                    Text("SHA-256 CHECKSUM (Tap to Copy):", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                                    Icon(Icons.Default.Share, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(10.dp))
                                 }
                                 Text(
                                     text = result.datasetMetadata.datasetSha256Checksum,
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     color = cyanAccent,
                                     fontFamily = FontFamily.Monospace,
                                     maxLines = 1
@@ -451,7 +435,7 @@ fun HistoricalBacktestScreen(
                 item {
                     Text(
                         text = "FIVE INDEPENDENT EVALUATION TRACKS",
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontFamily = FontFamily.Monospace
@@ -475,37 +459,35 @@ fun HistoricalBacktestScreen(
                     item {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(10.dp),
                             colors = CardDefaults.cardColors(containerColor = cardBackground),
-                            border = BorderStroke(1.dp, neonGreen.copy(alpha = 0.6f))
+                            border = BorderStroke(1.dp, neonGreen.copy(alpha = 0.5f))
                         ) {
-                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
                                     text = "EMPIRICAL CALIBRATION RELIABILITY (N ≥ 300)",
-                                    fontSize = 12.sp,
+                                    fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = neonGreen,
                                     fontFamily = FontFamily.Monospace
                                 )
                                 Text(
-                                    text = "Compares model predicted probability bucket against realized outcome win frequency.",
-                                    fontSize = 10.sp,
+                                    text = "Model predicted probability vs. realized outcome win frequency.",
+                                    fontSize = 9.sp,
                                     color = Color.LightGray,
                                     fontFamily = FontFamily.Monospace
                                 )
 
                                 result.trackD_Quantitative.calibrationBins.forEach { bin ->
                                     Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 4.dp),
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(bin.binRangeLabel, fontSize = 11.sp, color = Color.White, fontFamily = FontFamily.Monospace)
+                                        Text(bin.binRangeLabel, fontSize = 10.sp, color = Color.White, fontFamily = FontFamily.Monospace)
                                         Text(
-                                            text = "Expected: ${bin.expectedProbPercent.toInt()}% | Realized: ${String.format("%.1f", bin.realizedAccuracyPercent)}% (${bin.actualWinsInBin}/${bin.totalPredictionsInBin})",
-                                            fontSize = 10.sp,
+                                            text = "Exp: ${bin.expectedProbPercent.toInt()}% | Real: ${String.format("%.1f", bin.realizedAccuracyPercent)}% (${bin.actualWinsInBin}/${bin.totalPredictionsInBin})",
+                                            fontSize = 9.sp,
                                             color = if (bin.realizedAccuracyPercent >= bin.expectedProbPercent - 5.0) neonGreen else kalshiOrange,
                                             fontFamily = FontFamily.Monospace
                                         )
@@ -516,11 +498,11 @@ fun HistoricalBacktestScreen(
                     }
                 }
 
-                // 6. Granular Trade-by-Trade Window Inspection
+                // 6. Granular Trade-by-Trade Window Inspection (Terminal Log Feed)
                 item {
                     Text(
-                        text = "WALK-FORWARD TRADE LOG (SAMPLE REVIEWS)",
-                        fontSize = 12.sp,
+                        text = "WALK-FORWARD TRADE LOG (TERMINAL FEED)",
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontFamily = FontFamily.Monospace
@@ -538,13 +520,12 @@ fun HistoricalBacktestScreen(
 
 @Composable
 fun TrackPerformanceCard(track: TrackPerformanceSummary) {
-    val cardBackground = Color(0xFF14151D)
-    val neonGreen = Color(0xFF00FF66)
-    val neonRed = Color(0xFFFF3366)
-    val cyanAccent = Color(0xFF00E5FF)
-    val kalshiOrange = Color(0xFFFF9900)
-
-    val dateFormat = remember { SimpleDateFormat("HH:mm", Locale.US) }
+    val cardBackground = QtYColors.Surface
+    val cardBorder = QtYColors.BorderDefault
+    val neonGreen = QtYColors.BullishGreen
+    val neonRed = QtYColors.BearishRed
+    val cyanAccent = QtYColors.PrimaryCyan
+    val kalshiOrange = QtYColors.WarningAmber
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -553,13 +534,13 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
         border = BorderStroke(
             1.dp,
             when (track.dataConfidenceTier) {
-                DataConfidenceTier.INSUFFICIENT -> Color(0xFF333344)
+                DataConfidenceTier.INSUFFICIENT -> cardBorder
                 DataConfidenceTier.PRELIMINARY -> kalshiOrange.copy(alpha = 0.5f)
                 DataConfidenceTier.CALIBRATION_READY -> neonGreen.copy(alpha = 0.5f)
             }
         )
     ) {
-        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -569,38 +550,32 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
                 Column {
                     Text(
                         text = track.trackName,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontFamily = FontFamily.Monospace
                     )
                     track.retrospectiveBadge?.let { badge ->
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFF2E1A38)
-                        ) {
+                        Surface(shape = RoundedCornerShape(3.dp), color = Color(0xFF261230)) {
                             Text(
                                 text = badge,
                                 fontSize = 8.sp,
                                 color = Color(0xFFE088FF),
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                             )
                         }
                     }
                     track.syntheticBadge?.let { badge ->
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = Color(0xFF331414)
-                        ) {
+                        Surface(shape = RoundedCornerShape(3.dp), color = Color(0xFF2E1010)) {
                             Text(
                                 text = badge,
                                 fontSize = 8.sp,
                                 color = neonRed,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                             )
                         }
                     }
@@ -609,51 +584,51 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
                 // Confidence Tier Badge
                 when (track.dataConfidenceTier) {
                     DataConfidenceTier.INSUFFICIENT -> {
-                        Surface(shape = RoundedCornerShape(12.dp), color = Color(0xFF1E1E28)) {
+                        Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF161822)) {
                             Text(
                                 text = "INSUFFICIENT (N=${track.totalSettledCountN}/100)",
-                                fontSize = 9.sp,
+                                fontSize = 8.sp,
                                 color = Color.Gray,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
                     DataConfidenceTier.PRELIMINARY -> {
-                        Surface(shape = RoundedCornerShape(12.dp), color = kalshiOrange.copy(alpha = 0.15f)) {
+                        Surface(shape = RoundedCornerShape(10.dp), color = kalshiOrange.copy(alpha = 0.15f)) {
                             Text(
                                 text = "PRELIMINARY (N=${track.totalSettledCountN})",
-                                fontSize = 9.sp,
+                                fontSize = 8.sp,
                                 color = kalshiOrange,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
                     DataConfidenceTier.CALIBRATION_READY -> {
-                        Surface(shape = RoundedCornerShape(12.dp), color = neonGreen.copy(alpha = 0.15f)) {
+                        Surface(shape = RoundedCornerShape(10.dp), color = neonGreen.copy(alpha = 0.15f)) {
                             Text(
                                 text = "CALIBRATION READY (N=${track.totalSettledCountN})",
-                                fontSize = 9.sp,
+                                fontSize = 8.sp,
                                 color = neonGreen,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
                     }
                 }
             }
 
-            // Performance Metrics
+            // Compact Performance Metrics Cards
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Column {
-                    Text("ACCURACY RATE", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                    Text("ACCURACY RATE", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
                     Text(
-                        text = track.accuracyPercent?.let { "${String.format("%.1f", it)}%" } ?: "INSUFFICIENT DATA",
-                        fontSize = 13.sp,
+                        text = track.accuracyPercent?.let { "${String.format("%.1f", it)}%" } ?: "N/A",
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (track.accuracyPercent != null) neonGreen else Color.Gray,
                         fontFamily = FontFamily.Monospace
@@ -661,10 +636,10 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
                 }
 
                 Column {
-                    Text("WON / LOST / FLAT", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                    Text("WON / LOST / FLAT", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
                     Text(
                         text = "${track.wonCount}W / ${track.lostCount}L / ${track.noTradeCount}F",
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
                         fontFamily = FontFamily.Monospace
@@ -672,10 +647,10 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
                 }
 
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("SIMULATED P&L", fontSize = 9.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
+                    Text("SIMULATED P&L", fontSize = 8.sp, color = Color.Gray, fontFamily = FontFamily.Monospace)
                     Text(
                         text = "${if (track.totalSimulatedPnlDollars >= 0) "+" else ""}$${String.format("%.2f", track.totalSimulatedPnlDollars)}",
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (track.totalSimulatedPnlDollars >= 0) neonGreen else neonRed,
                         fontFamily = FontFamily.Monospace
@@ -688,34 +663,34 @@ fun TrackPerformanceCard(track: TrackPerformanceSummary) {
 
 @Composable
 fun TradeAuditRecordCard(trade: BacktestPredictionRecord) {
-    val darkCard = Color(0xFF101117)
-    val neonGreen = Color(0xFF00FF66)
-    val neonRed = Color(0xFFFF3366)
+    val terminalCard = Color(0xFF0A0C10)
+    val neonGreen = QtYColors.BullishGreen
+    val neonRed = QtYColors.BearishRed
     val dateFormat = remember { SimpleDateFormat("MM/dd HH:mm", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") } }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(6.dp),
-        colors = CardDefaults.cardColors(containerColor = darkCard),
-        border = BorderStroke(1.dp, Color(0xFF1F212E))
+        colors = CardDefaults.cardColors(containerColor = terminalCard),
+        border = BorderStroke(1.dp, QtYColors.BorderDefault)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 6.dp),
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(
                     text = "${dateFormat.format(Date(trade.windowStartTimestamp))} UTC",
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     color = Color.Gray,
                     fontFamily = FontFamily.Monospace
                 )
                 Text(
                     text = "S0: $${String.format("%,.1f", trade.strikeReferencePrice)} → S15: $${String.format("%,.1f", trade.settlementPrice)}",
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     color = Color.LightGray,
                     fontFamily = FontFamily.Monospace
                 )
@@ -724,14 +699,14 @@ fun TradeAuditRecordCard(trade: BacktestPredictionRecord) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = trade.predictedDirection,
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (trade.predictedDirection == "BULLISH") neonGreen else if (trade.predictedDirection == "BEARISH") neonRed else Color.Gray,
                     fontFamily = FontFamily.Monospace
                 )
                 Text(
                     text = "Cost: ${String.format("%.1f", trade.simulatedCostCents)}¢",
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     color = Color.Gray,
                     fontFamily = FontFamily.Monospace
                 )
@@ -739,12 +714,12 @@ fun TradeAuditRecordCard(trade: BacktestPredictionRecord) {
 
             Column(horizontalAlignment = Alignment.End) {
                 Surface(
-                    shape = RoundedCornerShape(4.dp),
+                    shape = RoundedCornerShape(3.dp),
                     color = if (trade.actualOutcome == "WON") neonGreen.copy(alpha = 0.15f) else neonRed.copy(alpha = 0.15f)
                 ) {
                     Text(
                         text = trade.actualOutcome,
-                        fontSize = 9.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (trade.actualOutcome == "WON") neonGreen else neonRed,
                         fontFamily = FontFamily.Monospace,
@@ -753,7 +728,7 @@ fun TradeAuditRecordCard(trade: BacktestPredictionRecord) {
                 }
                 Text(
                     text = "${if (trade.simulatedNetProfitCents >= 0) "+" else ""}${String.format("%.1f", trade.simulatedNetProfitCents)}¢",
-                    fontSize = 10.sp,
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (trade.simulatedNetProfitCents >= 0) neonGreen else neonRed,
                     fontFamily = FontFamily.Monospace

@@ -46,6 +46,8 @@ import com.example.data.live.LiveContractWindow
 import com.example.data.live.LivePredictionLogRecord
 import com.example.data.live.LiveContributingFactor
 import com.example.data.live.NetworkDiagnostics
+import com.example.ui.components.*
+import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
@@ -134,288 +136,98 @@ fun TradingDashboard(viewModel: TradingViewModel) {
     } else {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .background(cyanAccent.copy(alpha = 0.15f), CircleShape)
-                                    .border(1.dp, cyanAccent, CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Timeline,
-                                    contentDescription = "Logo",
-                                    tint = cyanAccent,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "BTC QUANT FORECAST",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 16.sp,
-                                    fontFamily = FontFamily.Monospace,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = "Instant Look & Bet Engine",
-                                    fontSize = 10.sp,
-                                    color = Color.Gray,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            }
-                        }
-                    },
-                    actions = {
-                        IconButton(
-                            onClick = { showLiveValidationScreen = true },
-                            modifier = Modifier.testTag("open_live_validation_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Science,
-                                contentDescription = "Live Radar Validation",
-                                tint = purpleAccent
-                            )
-                        }
-                        // Explicit Data-Confidence Tier Badge
-                    when (dataConfidenceTier) {
-                        DataConfidenceTier.INSUFFICIENT -> {
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 12.dp)
-                                    .background(Color(0xFF1E1E1E), RoundedCornerShape(20.dp))
-                                    .border(1.dp, Color(0xFF444444), RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(
-                                        imageVector = Icons.Default.Info,
-                                        contentDescription = null,
-                                        tint = Color.Gray,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "INSUFFICIENT DATA (N=$settledPredictionsCount/100)",
-                                        color = Color.LightGray,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
-                            }
-                        }
-                        DataConfidenceTier.PRELIMINARY -> {
-                            val accText = overallAccuracyRate?.let { "${String.format("%.1f", it)}%" } ?: "CALC"
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 12.dp)
-                                    .background(kalshiOrange.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                                    .border(1.dp, kalshiOrange.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = null,
-                                        tint = kalshiOrange,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "PRELIMINARY: $accText (N=$settledPredictionsCount)",
-                                        color = kalshiOrange,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
-                            }
-                        }
-                        DataConfidenceTier.CALIBRATION_READY -> {
-                            val accText = overallAccuracyRate?.let { "${String.format("%.1f", it)}%" } ?: "CALC"
-                            Box(
-                                modifier = Modifier
-                                    .padding(end = 12.dp)
-                                    .background(neonGreen.copy(alpha = 0.15f), RoundedCornerShape(20.dp))
-                                    .border(1.dp, neonGreen.copy(alpha = 0.6f), RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 8.dp, vertical = 3.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = null,
-                                        tint = neonGreen,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Text(
-                                        text = "CALIBRATION READY: $accText (N=$settledPredictionsCount)",
-                                        color = neonGreen,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 10.sp,
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
-                            }
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = terminalDark,
-                    titleContentColor = Color.White
+                QtYHeader(
+                    title = "BTC PREDICTION ENGINE",
+                    subtitle = "Quant Telemetry",
+                    cycleInfo = "N=$settledPredictionsCount | ACC: ${overallAccuracyRate?.let { String.format("%.1f%%", it)} ?: "N/A"}",
+                    onOpenLiveRadar = { showLiveValidationScreen = true }
                 )
-            )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = terminalDark,
+            },
+            bottomBar = {
+                QtYBottomNavigation(
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it }
+                )
+            },
+            containerColor = QtYColors.Background
+        ) { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .border(BorderStroke(1.dp, cardBorder))
-                    .testTag("navigation_bar")
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .background(QtYColors.Background)
             ) {
-                NavigationBarItem(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    icon = { Icon(Icons.Default.ShowChart, contentDescription = "Predict") },
-                    label = { Text("PREDICT", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = cyanAccent,
-                        selectedTextColor = cyanAccent,
-                        indicatorColor = Color(0xFF141414),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    ),
-                    modifier = Modifier.testTag("tab_predict").testTag("tab_terminal")
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    icon = { Icon(Icons.Default.Analytics, contentDescription = "Analysis") },
-                    label = { Text("ANALYSIS", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = purpleAccent,
-                        selectedTextColor = purpleAccent,
-                        indicatorColor = Color(0xFF141414),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    ),
-                    modifier = Modifier.testTag("tab_analysis").testTag("tab_confidence")
-                )
-                NavigationBarItem(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.History, contentDescription = "Market & History") },
-                    label = { Text("MARKET/HISTORY", fontSize = 9.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = goldAccent,
-                        selectedTextColor = goldAccent,
-                        indicatorColor = Color(0xFF141414),
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray
-                    ),
-                    modifier = Modifier.testTag("tab_market_history").testTag("tab_graphs").testTag("tab_backtest")
-                )
-            }
-        },
-        containerColor = terminalDark
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(terminalDark)
-        ) {
-            when (selectedTab) {
-                0 -> TerminalScreen(
-                    btcPrice = btcPrice,
-                    priceChange24h = priceChange24h,
-                    priceHistory = priceHistory,
-                    prediction = activePrediction,
-                    isPredicting = isPredicting,
-                    marketRegime = marketRegime,
-                    accuracyRate = overallAccuracyRate,
-                    autoForecastEnabled = autoForecastEnabled,
-                    forecastCycleCountdown = forecastCycleCountdown,
-                    minConfidenceFilter = minConfidenceFilter,
-                    selectedHorizon = selectedHorizon,
-                    mtfTrend = mtfTrend,
-                    volumeDeltaHistory = volumeDeltaHistory,
-                    currentVolumeDelta = currentVolumeDelta,
-                    kalshiCycles = kalshiCycles,
-                    kalshiTrendAnalysis = kalshiTrendAnalysis,
-                    kalshiActiveContract = kalshiActiveContract,
-                    livePrediction = currentLivePrediction,
-                    liveHistory = livePredictionHistory,
-                    liveWindow = liveContractWindow,
-                    live10sCountdown = live10sCountdown,
-                    connectionState = connectionState,
-                    lastPriceFetchTimeMs = lastPriceFetchTimeMs,
-                    coinbaseQuote = coinbaseQuote,
-                    krakenQuote = krakenQuote,
-                    spotSpread = spotSpread,
-                    kalshiQuote = kalshiQuote,
-                    isAutoLogging = isAutoLogging,
-                    pendingObsCount = validationReport.pendingObservationsSnapshots,
-                    settledN = validationReport.independentContractWindowsSettledN,
-                    networkDiagnostics = networkDiagnostics,
-                    onTriggerPredict = { viewModel.recalculateForecast() },
-                    onTrigger10sPredict = { viewModel.run10SecondLiveEvaluation() },
-                    onToggleAutoForecast = { viewModel.toggleAutoForecast() },
-                    onSelectConfidence = { viewModel.setMinConfidenceFilter(it) },
-                    onSelectHorizon = { viewModel.setPredictionHorizon(it) },
-                    onSyncKalshiStrike = { viewModel.syncKalshiTargetWithSpot(it) },
-                    onSetCustomKalshiStrike = { viewModel.setCustomKalshiStrike(it) },
-                    onResetToStrike = { viewModel.resetToStrike() },
-                    onToggleKalshiLock = { viewModel.toggleKalshiAutoLock() }
-                )
-                1 -> AdvancedAnalysisScreen(
-                    btcPrice = btcPrice,
-                    livePrediction = currentLivePrediction,
-                    liveWindow = liveContractWindow,
-                    mtfTrend = mtfTrend,
-                    rsi = rsi,
-                    rsiHistory = rsiHistory,
-                    momentum = momentum,
-                    momentumHistory = momentumHistory,
-                    ema9 = ema9,
-                    ema21 = ema21,
-                    volatility = volatility,
-                    marketRegime = marketRegime,
-                    confidenceAnalysis = confidenceAnalysis,
-                    selectedHorizon = selectedHorizon,
-                    forecastCycleCountdown = forecastCycleCountdown,
-                    settledPredictionsCount = settledPredictionsCount,
-                    dataConfidenceTier = dataConfidenceTier,
-                    onTriggerRecalculate = { viewModel.recalculateForecast() },
-                    onSelectHorizon = { viewModel.setPredictionHorizon(it) }
-                )
-                2 -> MarketAndHistoryScreen(
-                    viewModel = viewModel,
-                    btcPrice = btcPrice,
-                    priceChange24h = priceChange24h,
-                    liveHistory = livePredictionHistory,
-                    kalshiCycles = kalshiCycles,
-                    kalshiTrendAnalysis = kalshiTrendAnalysis,
-                    kalshiActiveContract = kalshiActiveContract,
-                    platformTradeOptions = platformTradeOptions,
-                    selectedPlatformFilter = selectedPlatformFilter,
-                    paperBotState = paperBotState,
-                    activePrediction = activePrediction,
-                    onSelectPlatform = { viewModel.setSelectedPlatformFilter(it) },
-                    onToggleAutoBot = { viewModel.togglePaperBot() },
-                    onExecuteInstantTrade = { viewModel.executeInstantPaperTrade(it) },
-                    onResetSandbox = { viewModel.resetPaperSandbox(it) },
-                    onSelectTradeSize = { viewModel.setPaperTradeSize(it) },
-                    onClosePositionEarly = { viewModel.closeActivePaperPositionEarly() },
-                    onToggleSlippage = { viewModel.toggleRealisticSlippage() },
-                    onToggleWallClock = { viewModel.toggleWallClockSync() }
-                )
+                when (selectedTab) {
+                    0 -> TerminalScreen(
+                        btcPrice = btcPrice,
+                        priceChange24h = priceChange24h,
+                        priceHistory = priceHistory,
+                        prediction = activePrediction,
+                        isPredicting = isPredicting,
+                        marketRegime = marketRegime,
+                        accuracyRate = overallAccuracyRate,
+                        autoForecastEnabled = autoForecastEnabled,
+                        forecastCycleCountdown = forecastCycleCountdown,
+                        minConfidenceFilter = minConfidenceFilter,
+                        selectedHorizon = selectedHorizon,
+                        mtfTrend = mtfTrend,
+                        volumeDeltaHistory = volumeDeltaHistory,
+                        currentVolumeDelta = currentVolumeDelta,
+                        kalshiCycles = kalshiCycles,
+                        kalshiTrendAnalysis = kalshiTrendAnalysis,
+                        kalshiActiveContract = kalshiActiveContract,
+                        livePrediction = currentLivePrediction,
+                        liveHistory = livePredictionHistory,
+                        liveWindow = liveContractWindow,
+                        live10sCountdown = live10sCountdown,
+                        connectionState = connectionState,
+                        lastPriceFetchTimeMs = lastPriceFetchTimeMs,
+                        coinbaseQuote = coinbaseQuote,
+                        krakenQuote = krakenQuote,
+                        spotSpread = spotSpread,
+                        kalshiQuote = kalshiQuote,
+                        isAutoLogging = isAutoLogging,
+                        pendingObsCount = validationReport.pendingObservationsSnapshots,
+                        settledN = validationReport.independentContractWindowsSettledN,
+                        networkDiagnostics = networkDiagnostics,
+                        onTriggerPredict = { viewModel.recalculateForecast() },
+                        onTrigger10sPredict = { viewModel.run10SecondLiveEvaluation() },
+                        onToggleAutoForecast = { viewModel.toggleAutoForecast() },
+                        onSelectConfidence = { viewModel.setMinConfidenceFilter(it) },
+                        onSelectHorizon = { viewModel.setPredictionHorizon(it) },
+                        onSyncKalshiStrike = { viewModel.syncKalshiTargetWithSpot(it) },
+                        onSetCustomKalshiStrike = { viewModel.setCustomKalshiStrike(it) },
+                        onResetToStrike = { viewModel.resetToStrike() },
+                        onToggleKalshiLock = { viewModel.toggleKalshiAutoLock() }
+                    )
+                    1 -> AdvancedAnalysisScreen(
+                        btcPrice = btcPrice,
+                        livePrediction = currentLivePrediction,
+                        liveWindow = liveContractWindow,
+                        mtfTrend = mtfTrend,
+                        rsi = rsi,
+                        rsiHistory = rsiHistory,
+                        momentum = momentum,
+                        momentumHistory = momentumHistory,
+                        ema9 = ema9,
+                        ema21 = ema21,
+                        volatility = volatility,
+                        marketRegime = marketRegime,
+                        confidenceAnalysis = confidenceAnalysis,
+                        selectedHorizon = selectedHorizon,
+                        forecastCycleCountdown = forecastCycleCountdown,
+                        settledPredictionsCount = settledPredictionsCount,
+                        dataConfidenceTier = dataConfidenceTier,
+                        onTriggerRecalculate = { viewModel.recalculateForecast() },
+                        onSelectHorizon = { viewModel.setPredictionHorizon(it) }
+                    )
+                    2 -> HistoricalBacktestScreen(
+                        viewModel = viewModel,
+                        onBack = { selectedTab = 0 }
+                    )
+                }
             }
         }
-    }
 }
 }
 
@@ -604,7 +416,7 @@ fun TerminalScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(QtYColors.Background)
             .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
