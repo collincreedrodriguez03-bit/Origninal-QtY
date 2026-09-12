@@ -1,0 +1,6 @@
+{
+  "name": "BTC Co-Pilot 2.0",
+  "description": "High-accuracy BTC price prediction engine with visual forecasting trajectory, real-time indicators, RSI, and momentum charts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
